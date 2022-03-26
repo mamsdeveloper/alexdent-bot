@@ -1,0 +1,1 @@
+worker: python alex_dent_bot.py
