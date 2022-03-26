@@ -77,7 +77,7 @@ class PagesBot(telebot.TeleBot):
 		if curr_page_name in self.pages_imgs:
 			self.send_photo(message.chat.id, self.pages_imgs[curr_page_name])
 
-	def get_reply_addons(self) -> tuple[str, list[types.KeyboardButton]]:
+	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
 		"""User extension for page displaying
 
 		Returns:
@@ -127,7 +127,7 @@ class PagesBot(telebot.TeleBot):
 
 		self.display_page(message, pages)
 
-	def get_available_pages(self, message: types.Message) -> list[str]:
+	def get_available_pages(self, message: types.Message) -> "list[str]":
 		"""Return names of availabels next pages
 
 		Args:

@@ -8,7 +8,7 @@ from pagesbot import PagesBot
 
 
 class AlexDentBot(PagesBot):
-	def get_reply_addons(self) -> tuple[str, list[types.KeyboardButton]]:
+	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
 		add_text = '📞 Заказать обратный звонок\n\n'
 		add_text += '🌹 Записаться на прием'
 
@@ -79,7 +79,7 @@ class AlexDentBot(PagesBot):
 		self.register_next_step_handler(
 			message, partial(self.order_appointment_name, [phone]))
 
-	def order_appointment_name(self, data: list[str], message: types.Message):
+	def order_appointment_name(self, data: "list[str]", message: types.Message):
 		data += [message.text]
 		self.send_message(
 			message.chat.id,
@@ -88,7 +88,7 @@ class AlexDentBot(PagesBot):
 		self.register_next_step_handler(
 			message, partial(self.order_appointment_date, data))
 
-	def order_appointment_date(self, data: list[str], message: types.Message):
+	def order_appointment_date(self, data: "list[str]", message: types.Message):
 		data += [message.text]
 	
 		doctors = [
@@ -112,7 +112,7 @@ class AlexDentBot(PagesBot):
 		)
 		self.register_next_step_handler(message, partial(self.order_appointment_last, data))
 
-	def order_appointment_last(self, data: list[str], message: types.Message):
+	def order_appointment_last(self, data: "list[str]", message: types.Message):
 		data += [message.text]
 		phone, name, date, doctor = data
 
