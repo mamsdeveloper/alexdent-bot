@@ -1,6 +1,12 @@
-import itertools
-import os
+"""PagesBot 0.1.1
+PagesBot is framework for pyTelegramBotAPI
+It provides fast development of business solusions for Telegram platform
+See https://github.com/mamsdeveloper/wangram
+
+"""
+
 import json
+import os
 
 import telebot
 from telebot import types
@@ -66,12 +72,12 @@ class PagesBot(telebot.TeleBot):
 		if add_text:
 			text += '\n' + '-' * 10 + '\n'
 			text += add_text
-		
+
 		text = text.format(**locals())
 
 		btns += add_btns
 		markup.add(*btns)
-		
+
 		self.send_message(message.chat.id, text, reply_markup=markup)
 		if curr_page_name in self.pages_imgs:
 			self.send_photo(message.chat.id, self.pages_imgs[curr_page_name])
@@ -171,7 +177,7 @@ class PagesBot(telebot.TeleBot):
 
 		with open('users.json', 'w') as f:
 			json.dump(users, f)
-	
+
 	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
 		"""User extension for page displaying
 

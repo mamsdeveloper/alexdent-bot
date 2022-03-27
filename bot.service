@@ -1,0 +1,14 @@
+[Unit]
+Description=Alex Dent Telegram Bot
+After=network.target
+
+[Service]
+ExecStart=python3 alex_dent_bot.py
+ExecReload=python3 alex_dent_bot.py
+WorkingDirectory=/
+KillMode=process
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

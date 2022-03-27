@@ -51,6 +51,7 @@ class AlexDentBot(PagesBot):
 				message.chat.id,
 				'Нет такой команды или страницы'
 			)
+			self.go_root_page(message)
 
 	def order_call(self, message: types.Message):
 		if message.contact is not None:
@@ -59,11 +60,19 @@ class AlexDentBot(PagesBot):
 			phone = message.text
 
 		mail_text = f'Запрос обратного вызова\nКлиент: {message.chat.first_name} {message.chat.last_name}\nНомер: {phone}'
-		self.send_email(mail_text)
-		self.send_message(
-			message.chat.id,
-			'Спасибо за обращение, скоро с вами свяжутся менеджеры',
-		)
+		try:
+			self.send_email(mail_text)
+			self.send_message(
+				message.chat.id,
+				'Спасибо за обращение, скоро с вами свяжутся менеджеры',
+			)
+		except Exception as e:
+			print(e)
+			self.send_message(
+				message.chat.id,
+				'К сожалению, не удалось выполнить запрос. Попробуйте позже'
+			)
+			
 		self.go_root_page(message)
 
 	def order_appointment_phone(self, message: types.Message):
@@ -90,7 +99,7 @@ class AlexDentBot(PagesBot):
 
 	def order_appointment_date(self, data: "list[str]", message: types.Message):
 		data += [message.text]
-	
+
 		doctors = [
 			'Не важно, какой врач',
 			'Татитянц Артур Валерьевич',
@@ -100,7 +109,7 @@ class AlexDentBot(PagesBot):
 			'Бадалян Шираз Кронвельович',
 			'Дилбарян Назели Оганесовна',
 			'Голубкова Олеся Валерьевна'
-			]
+                ]
 
 		markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 		markup.add(*[types.KeyboardButton(d) for d in doctors])
@@ -110,18 +119,27 @@ class AlexDentBot(PagesBot):
 			'Выберите врача',
 			reply_markup=markup
 		)
-		self.register_next_step_handler(message, partial(self.order_appointment_last, data))
+		self.register_next_step_handler(
+			message, partial(self.order_appointment_last, data))
 
 	def order_appointment_last(self, data: "list[str]", message: types.Message):
 		data += [message.text]
 		phone, name, date, doctor = data
 
 		mail_text = f'Запись на прием\nКлиент: {name}\nНомер: {phone}\nДата: {date}\nВрач: {doctor}'
-		self.send_email(mail_text)
-		self.send_message(
-			message.chat.id,
-			'Спасибо за обращение.\n Ожидайте звонка от нашего специалиста',
-		)
+		try:
+			self.send_email(mail_text)
+			self.send_message(
+				message.chat.id,
+				'Спасибо за обращение.\n Ожидайте звонка от нашего специалиста',
+			)
+		except Exception as e:
+			print(e)
+			self.send_message(
+				message.chat.id,
+				'К сожалению, не удалось выполнить запрос. Попробуйте позже'
+			)
+
 		self.go_root_page(message)
 
 	def send_email(self, text: str):
