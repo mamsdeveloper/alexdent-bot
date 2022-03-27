@@ -49,7 +49,6 @@ class PagesBot(telebot.TeleBot):
 		next_pages = self.get_available_pages(message)
 
 		text = self.pages_contents[curr_page_name]
-
 		if next_pages:
 			text += '\n' + '-' * 10 + '\n'
 
@@ -76,15 +75,6 @@ class PagesBot(telebot.TeleBot):
 		self.send_message(message.chat.id, text, reply_markup=markup)
 		if curr_page_name in self.pages_imgs:
 			self.send_photo(message.chat.id, self.pages_imgs[curr_page_name])
-
-	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
-		"""User extension for page displaying
-
-		Returns:
-			tuple[str, list[types.KeyboardButton]]: added text and buttons
-		"""
-
-		return '', []
 
 	def go_next_page(self, message: types.Message, page: str):
 		"""Go to child page from current page
@@ -181,6 +171,15 @@ class PagesBot(telebot.TeleBot):
 
 		with open('users.json', 'w') as f:
 			json.dump(users, f)
+	
+	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
+		"""User extension for page displaying
+
+		Returns:
+			tuple[str, list[types.KeyboardButton]]: added text and buttons
+		"""
+
+		return '', []
 
 	def addons_handler(self, message: types.Message):
 		"""Handler for extensional functionality
