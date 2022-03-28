@@ -54,6 +54,8 @@ class AlexDentBot(PagesBot):
 			self.go_root_page(message)
 
 	def order_call(self, message: types.Message):
+		markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+		markup.add(types.KeyboardButton('🏠'))
 		if message.contact is not None:
 			phone = message.contact.phone_number
 		else:
@@ -65,15 +67,15 @@ class AlexDentBot(PagesBot):
 			self.send_message(
 				message.chat.id,
 				'Спасибо за обращение, скоро с вами свяжутся менеджеры',
+				reply_markup=markup
 			)
 		except Exception as e:
 			print(e)
 			self.send_message(
 				message.chat.id,
-				'К сожалению, не удалось выполнить запрос. Попробуйте позже'
+				'К сожалению, не удалось выполнить запрос. Попробуйте позже',
+				reply_markup=markup
 			)
-			
-		self.go_root_page(message)
 
 	def order_appointment_phone(self, message: types.Message):
 		if message.contact is not None:
@@ -123,24 +125,27 @@ class AlexDentBot(PagesBot):
 			message, partial(self.order_appointment_last, data))
 
 	def order_appointment_last(self, data: "list[str]", message: types.Message):
+		markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+		markup.add(types.KeyboardButton('🏠'))
+
 		data += [message.text]
 		phone, name, date, doctor = data
-
 		mail_text = f'Запись на прием\nКлиент: {name}\nНомер: {phone}\nДата: {date}\nВрач: {doctor}'
 		try:
 			self.send_email(mail_text)
 			self.send_message(
 				message.chat.id,
 				'Спасибо за обращение.\n Ожидайте звонка от нашего специалиста',
+				reply_markup=markup
 			)
 		except Exception as e:
 			print(e)
 			self.send_message(
 				message.chat.id,
-				'К сожалению, не удалось выполнить запрос. Попробуйте позже'
+				'К сожалению, не удалось выполнить запрос. Попробуйте позже',
+				reply_markup=markup
 			)
 
-		self.go_root_page(message)
 
 	def send_email(self, text: str):
 		domain = config.FROM_EMAIL.split('@')[1]
