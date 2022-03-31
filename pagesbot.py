@@ -203,7 +203,7 @@ class PagesBot(telebot.TeleBot):
 		Args:
 			message (types.Message): _description_
 		"""
-		text = message.text
+		text = message.text.encode('utf-8')
 		if text == '/start':
 			self.set_user_pages(message.chat.username, self.first_page)
 		available_pages = self.get_available_pages(message)
