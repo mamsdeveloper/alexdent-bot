@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import smtplib
 from functools import partial
 

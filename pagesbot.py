@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """PagesBot 0.1.1
 PagesBot is framework for pyTelegramBotAPI
 It provides fast development of business solusions for Telegram platform
@@ -23,7 +24,7 @@ class PagesBot(telebot.TeleBot):
 
 		super().__init__(*args, **kwargs)
 		self.first_page = first_page
-		with open(os.path.join(pages_path, 'pages.json'), 'rb') as f:
+		with open(os.path.join(pages_path, 'pages.json'), 'r', encoding='utf-8') as f:
 			self.pages = json.load(f)
 
 		self.pages_contents = {}
@@ -32,10 +33,10 @@ class PagesBot(telebot.TeleBot):
 			filename, ext = os.path.splitext(file)
 			if ext == '.txt':
 				with open(os.path.join(pages_path, file), 'r', encoding='utf-8') as f:
-					self.pages_contents[filename] = f.read()
+					self.pages_contents[filename.encode('utf-8')] = f.read()
 			elif ext in ('.png', '.jpg', '.jpeg', '.webm'):
 				with open(os.path.join(pages_path, file), 'rb') as f:
-					self.pages_imgs[filename] = f.read()
+					self.pages_imgs[filename.encode('utf-8')] = f.read()
 
 		self.register_message_handler(
 			self.handler,
@@ -151,7 +152,7 @@ class PagesBot(telebot.TeleBot):
 			str: current page path in pages.json in formar "page0.page1..."
 		"""
 
-		with open('users.json', 'r') as f:
+		with open('users.json', 'r', encoding='utf-8') as f:
 			try:
 				users = json.load(f)
 			except json.JSONDecodeError:
@@ -167,7 +168,7 @@ class PagesBot(telebot.TeleBot):
 			page (str): page path in pages.json in formar "page0.page1..."
 		"""
 
-		with open('users.json', 'r') as f:
+		with open('users.json', 'r', encoding='utf-8') as f:
 			try:
 				users = json.load(f)
 			except json.JSONDecodeError:
@@ -175,7 +176,7 @@ class PagesBot(telebot.TeleBot):
 
 		users[username] = page
 
-		with open('users.json', 'w') as f:
+		with open('users.json', 'w', encoding='utf-8') as f:
 			json.dump(users, f)
 
 	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
