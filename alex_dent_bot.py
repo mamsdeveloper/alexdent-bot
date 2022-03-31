@@ -160,5 +160,11 @@ class AlexDentBot(PagesBot):
 
 
 if __name__ == '__main__':
-	bot = AlexDentBot('./pages', 'Меню', config.TOKEN)
-	bot.polling(non_stop=True)
+	try:
+		bot = AlexDentBot('./pages', 'Меню', config.TOKEN)
+		bot.polling(non_stop=True)
+	except Exception as e:
+		with open('logging.txt', 'a') as f:
+			f.write('\n' + str(e))
+
+		raise e	
