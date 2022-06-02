@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import smtplib
+import sys
 from functools import partial
 
 from telebot import types
@@ -134,26 +135,36 @@ class AlexDentBot(PagesBot):
 		phone, name, date, doctor = data
 		mail_text = f'Запись на прием\nКлиент: {name}\nНомер: {phone}\nДата: {date}\nВрач: {doctor}'
 		try:
+			self.send_message(
+				message.chat.id,
+				'Ваш запрос обрабатывается, это может занять какое-то время',
+				reply_markup=types.ReplyKeyboardRemove()
+			)
 			self.send_email(mail_text)
+			with open('logging.txt', 'ab') as f:
+				f.write(f'Send email {name} {phone}\n'.encode('utf-8'))
+
 			self.send_message(
 				message.chat.id,
 				'Спасибо за обращение.\n Ожидайте звонка от нашего специалиста',
 				reply_markup=markup
 			)
 		except Exception as e:
-			print(e)
 			self.send_message(
 				message.chat.id,
 				'К сожалению, не удалось выполнить запрос. Попробуйте позже',
 				reply_markup=markup
 			)
-
+			with open('logging.txt', 'ab') as f:
+				f.write('\n'.encode('utf-8') + str(e).encode('utf-8'))
 
 	def send_email(self, text: str):
-		domain = config.FROM_EMAIL.split('@')[1]
+		name, domain = config.FROM_EMAIL.split('@')
+		print('smtp.' + domain)
 		server = smtplib.SMTP(
 			'smtp.' + domain,
-			587 if domain == 'gmail.com' else 465
+			587 if domain == 'gmail.com' else 465,
+			timeout=10
 		)
 		server.starttls()
 		server.login(config.FROM_EMAIL, config.FROM_EMAIL_PSW)
@@ -162,11 +173,16 @@ class AlexDentBot(PagesBot):
 
 
 if __name__ == '__main__':
+	if len(sys.argv) > 1:
+		token = sys.argv[1]
+	else:
+		token = config.TOKEN
+	print(token)
 	try:
-		bot = AlexDentBot('./pages', 'Меню', config.TOKEN)
+		bot = AlexDentBot('./', './pages', 'Меню', token, parse_mode='html')
 		bot.polling(non_stop=True)
 	except Exception as e:
-		with open('logging.txt', 'a') as f:
-			f.write('\n' + str(e))
+		with open('logging.txt', 'ab') as f:
+			f.write('\n'.encode('utf-8') + str(e).encode('utf-8'))
 
-		raise e	
+		raise e

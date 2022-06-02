@@ -1,0 +1,9 @@
+
+__init__() missing 1 required positional argument: 'token'
+[Errno 2] No such file or directory: '/home/k/kurer843/aleks-dent-telebot/pages\\pages.json'
+('Connection aborted.', ConnectionResetError(10054, 'Удаленный хост принудительно разорвал существующее подключение', None, 10054, None))
+HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)Send email
+Send email
+
+Connection unexpectedly closedSend email
+Send email

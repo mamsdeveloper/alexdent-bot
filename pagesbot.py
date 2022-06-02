@@ -14,15 +14,17 @@ from telebot import types
 
 
 class PagesBot(telebot.TeleBot):
-	def __init__(self, pages_path: str, first_page: str, *args, **kwargs) -> None:
+	def __init__(self, users_path: str, pages_path: str, first_page: str, *args, **kwargs) -> None:
 		"""Initialize TeleBot, parse pages folder
 
 		Args:
+			users_path (str): folder with users.json
 			pages_path (str): folder with pages.json and pages content
 			first_page (str): name of first displayed page
 		"""
 
 		super().__init__(*args, **kwargs)
+		self.users_path = users_path
 		self.first_page = first_page
 		with open(os.path.join(pages_path, 'pages.json'), 'r', encoding='utf-8') as f:
 			self.pages = json.load(f)
@@ -33,10 +35,10 @@ class PagesBot(telebot.TeleBot):
 			filename, ext = os.path.splitext(file)
 			if ext == '.txt':
 				with open(os.path.join(pages_path, file), 'r', encoding='utf-8') as f:
-					self.pages_contents[filename.encode('utf-8')] = f.read()
+					self.pages_contents[filename] = f.read()
 			elif ext in ('.png', '.jpg', '.jpeg', '.webm'):
 				with open(os.path.join(pages_path, file), 'rb') as f:
-					self.pages_imgs[filename.encode('utf-8')] = f.read()
+					self.pages_imgs[filename] = f.read()
 
 		self.register_message_handler(
 			self.handler,
@@ -56,6 +58,7 @@ class PagesBot(telebot.TeleBot):
 		next_pages = self.get_available_pages(message)
 
 		text = self.pages_contents[curr_page_name]
+		text += '\n<b>Введите одну из следующих команд или нажмите соответствующую кнопку</b>\n'
 		if next_pages:
 			text += '\n' + '-' * 10 + '\n'
 
@@ -91,9 +94,9 @@ class PagesBot(telebot.TeleBot):
 			page (str): name of target page
 		"""
 
-		pages = self.get_user_pages(message.chat.username)
+		pages = self.get_user_pages(message.chat.id)
 		pages += f'.{page}'
-		self.set_user_pages(message.chat.username, pages)
+		self.set_user_pages(message.chat.id, pages)
 
 		self.display_page(message, pages)
 
@@ -104,10 +107,10 @@ class PagesBot(telebot.TeleBot):
 			message (str): reply message
 		"""
 
-		pages = self.get_user_pages(message.chat.username)
+		pages = self.get_user_pages(message.chat.id)
 		if len(pages.split('.')) > 1:
 			pages = '.'.join(pages.split('.')[:-1])
-		self.set_user_pages(message.chat.username, pages)
+		self.set_user_pages(message.chat.id, pages)
 
 		self.display_page(message, pages)
 
@@ -118,9 +121,9 @@ class PagesBot(telebot.TeleBot):
 			message (str): reply message
 		"""
 
-		pages = self.get_user_pages(message.chat.username)
+		pages = self.get_user_pages(message.chat.id)
 		pages = pages.split('.')[0]
-		self.set_user_pages(message.chat.username, pages)
+		self.set_user_pages(message.chat.id, pages)
 
 		self.display_page(message, pages)
 
@@ -133,50 +136,51 @@ class PagesBot(telebot.TeleBot):
 		Returns:
 			list[str]: pages names
 		"""
-		pages = self.get_user_pages(message.chat.username)
+		pages = self.get_user_pages(message.chat.id)
 		curr_page = self.pages
 		pages_names = pages.split('.')
+
 		for page_name in pages_names:
 			curr_page = curr_page[page_name]
 		next_pages = curr_page.keys()
 
 		return next_pages
 
-	def get_user_pages(self, username: str) -> str:
+	def get_user_pages(self, chat_id: int) -> str:
 		"""Get pages where user located from users.json
 
 		Args:
-			username (str): chat username
+			chat_id (int): chat id
 
 		Returns:
 			str: current page path in pages.json in formar "page0.page1..."
 		"""
 
-		with open('users.json', 'r', encoding='utf-8') as f:
+		with open(os.path.join(self.users_path, 'users.json'), 'r') as f:
 			try:
 				users = json.load(f)
 			except json.JSONDecodeError:
 				users = {}
 
-		return users.get(username)
+		return users.get(str(chat_id), self.first_page)
 
-	def set_user_pages(self, username: str, page: str):
+	def set_user_pages(self, chat_id: int, page: str):
 		"""Set current pages to users.json
 
 		Args:
-			username (str): chat username
+			chat_id (int): chat id
 			page (str): page path in pages.json in formar "page0.page1..."
 		"""
 
-		with open('users.json', 'r', encoding='utf-8') as f:
+		with open(os.path.join(self.users_path, 'users.json'), 'r') as f:
 			try:
 				users = json.load(f)
 			except json.JSONDecodeError:
 				users = {}
 
-		users[username] = page
+		users[str(chat_id)] = page
 
-		with open('users.json', 'w', encoding='utf-8') as f:
+		with open(os.path.join(self.users_path, 'users.json'), 'w') as f:
 			json.dump(users, f)
 
 	def get_reply_addons(self) -> "tuple[str, list[types.KeyboardButton]]":
@@ -203,25 +207,28 @@ class PagesBot(telebot.TeleBot):
 		Args:
 			message (types.Message): _description_
 		"""
-		text = message.text.encode('utf-8')
-		if text == '/start':
-			self.set_user_pages(message.chat.username, self.first_page)
-		available_pages = self.get_available_pages(message)
+		text = message.text
+		try:
+			if text == '/start':
+				self.set_user_pages(message.chat.id, self.first_page)
+			available_pages = self.get_available_pages(message)
 
-		if text == '/start':
-			self.display_page(message, self.first_page)
-		elif text in available_pages:
-			self.go_next_page(message, text)
-		elif text == '🔙':
-			self.go_previous_page(message)
-		elif text == '🏠':
-			self.go_root_page(message)
-		else:
-			self.addons_handler(message)
+			if text == '/start':
+				self.display_page(message, self.first_page)
+			elif text in available_pages:
+				self.go_next_page(message, text)
+			elif text == '🔙':
+				self.go_previous_page(message)
+			elif text == '🏠':
+				self.go_root_page(message)
+			else:
+				self.addons_handler(message)
+		except:
+			self.send_message(message.chat.id, 'Что-то не так. Пожалуйста, попробуйте ввести /start')
 
 
 if __name__ == '__main__':
 	import config
 
-	bot = PagesBot('pages', 'Меню', config.TOKEN)
-	bot.polling(non_stop=True)
+	# bot = PagesBot('pages', 'Меню', config.TOKEN)
+	# bot.polling(non_stop=True)
